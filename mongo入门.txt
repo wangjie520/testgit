@@ -1,0 +1,125 @@
+1.document的大小有限制吗
+mongod --config D:\MongoDB\mongo.config --install --serviceName "MongoDBservice"
+
+
+1.安装mongodb,启动service
+2../mongo
+3.创建数据库  use dummy
+4.创建集合   db.createCollection('author')
+5.show databases/collections
+6.db.author.drop
+7.db.createCollection('movie')
+  db.movie.insert(
+{
+	title:'yingziairen',
+	director:'hehe',
+	stars:['Angela Zhang','Jin Boran'],
+	tags:['romance','drama'],
+	debut: new Date(1994,7,6,0,0),
+   	likes: 864367,
+  	dislikes: 30127,
+   	comments:[
+	{
+		name:'zj',
+		text:'good,i like it',
+		like:'10000'
+	},
+	{
+		name:'wj',
+		text:'angela is so beautiful!',
+		like:'12345'
+	}
+   ]
+}
+)
+8.db.movie.find().pretty()经过美化后的输出格式
+9.db.movie.insert([
+ {
+   title: 'Fight Club', 
+   director: 'David Fincher',
+   stars: ['Brad Pitt', 'Edward Norton', 'Helena Bonham Carter'],
+   tags: 'drama',
+   debut: new Date(1999,10,15,0,0),
+   likes: 224360,
+   dislikes: 40127,
+   comments: [	
+      {
+         name:'user7',
+         text: 'Good Movie!',
+         dateCreated: new Date(2009,10,11,6,20),
+         like: 2
+      }
+   ]
+},
+{
+   title: 'Seven', 
+   director: 'David Fincher',
+   stars: ['Morgan Freeman', 'Brad Pitt',  'Kevin Spacey'],
+   tags: ['drama','mystery','thiller'],
+   debut: new Date(1995,9,22,0,0),
+   likes: 134370,
+   dislikes: 1037,
+   comments: [	
+      {
+         name:'user3',
+         text: 'Love Kevin Spacey',
+         dateCreated: new Date(2002,09,13,2,35),
+         like: 0 
+      },
+      {
+         name:'user2',
+         text: 'Good works!',
+         dateCreated: new Date(2013,10,21,6,20),
+         like: 14 
+      },
+      {
+         name:'user7',
+         text: 'Good Movie!',
+         dateCreated: new Date(2009,10,11,6,20),
+         like: 2
+      }
+   ]
+}
+])
+
+db.movie.find('director':'hehe')
+db.movie.find({'director': 'David Fincher','stars':'Morgan Freeman'})  //AND对于包含多个值的key只要符合一个就可以了
+db.movie.find({$or:[{'stars':'Morgan Freeman'},{'stars':'Angela Zhang'}]}) //or
+db.movie.find({likes:{$gt:10000}})   $gt,$lt,$get,$let<=,$ne key的引号可要可不要
+db.movie.findOne(director:'David Fincher') 按磁盘存储顺序返回第一个。请注意，findOne()自带pretty模式，所以不能再加pretty()
+db.movie.find().skip(1).limit(1) 跳过第一条记录，从第二条开始查一条
+db.movie.find({'tags':'drama'},{'debut':1,'title':1,'_id':0}).pretty()  //select非*,find的第二个参数是用来控制输出的，1表示要返回，而0则表示不返回。默认值是0，但_id是例外
+
+更新：
+db.movie.update({title:'Seven'},{$set:{likes:134371}})
+db.movie.update({title:'Seven'}, {$inc:{likes:2}}) 增量更新
+注意如果有多部符合要求的电影。则默认只会更新第一个。如果要多个同时更新，要设置{multi:true}
+db.movie.update({}, {$inc:{likes:10}},{multi:true})
+以上的更新操作会替换掉原来的值，所以如果你是想在原有的值得基础上增加一个值的话，则应该用$push
+db.movie.update({'title':'Seven'}, {$push:{'tags':'popular'}})
+db.movie.update({'title':'Seven'}, {$set:{'tags':'popular'}}) //原tags为array，变为String类型
+删除：
+db.movie.remove({'tags':'romance'})
+上面的例子会删除所有标签包含romance的电影。如果你只想删除第一个，则
+db.movie.remove({'tags':'romance'},1)
+
+
+索引和排序：
+对title加索引，1是升序索引，如果要降序索引，用-1
+db.movie.ensureIndex({title:1})
+排序：1升序，-1降序
+db.movie.find().sort({'title':1}).pretty()
+db.movie.getIndexes()
+db.movie.dropIndex('index_name')
+
+聚合
+
+原子化操作
+
+文本搜索
+
+正则表达式
+db.movie.find({title:/ingz/}).pretty() //where title like '%ingz%'
+
+管道
+db.movie.find({'comments.name':'zj'})
